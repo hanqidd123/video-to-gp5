@@ -57,28 +57,22 @@
 
 Homebrew 包说明：[Python 3.11](https://formulae.brew.sh/formula/python@3.11) · [Tesseract](https://formulae.brew.sh/formula/tesseract)
 
-## 从视频生成草稿
+## 从 YouTube 链接生成草稿
+
+将有权下载的 YouTube 链接直接传给脚本。脚本会临时下载视频，在本机识别六线谱并输出 GP5 和 JSON。
+
+下面的示例使用项目样例视频。它的六线谱位于画面上方，因此指定了 `--roi`。换用其他视频时，请替换链接，并按谱面位置调整裁剪范围。省略 `--roi` 时，脚本识别画面底部 45%。
 
 Windows
 
 ```powershell
-.\.venv\Scripts\python.exe tab_converter.py "videos\input.mp4" -o "output\song.gp5"
+.\.venv\Scripts\python.exe tab_converter.py "https://www.youtube.com/watch?v=EeuIM1DBwas" --roi 0.055 0.145 0.99 0.398 --interval 0.5 -o "output\EeuIM1DBwas-draft.gp5"
 ```
 
 macOS
 
 ```bash
-./.venv/bin/python tab_converter.py "videos/input.mp4" -o "output/song.gp5"
-```
-
-也可以把有权下载的 YouTube URL 作为输入。默认识别画面底部 45%。如果六线谱在上方，可用 `--roi LEFT TOP RIGHT BOTTOM` 设置比例坐标。项目样例使用以下参数：
-
-```powershell
-.\.venv\Scripts\python.exe tab_converter.py "videos\EeuIM1DBwas.mp4" --roi 0.055 0.145 0.99 0.398 --interval 0.5 -o "output\EeuIM1DBwas-draft.gp5"
-```
-
-```bash
-./.venv/bin/python tab_converter.py "videos/EeuIM1DBwas.mp4" --roi 0.055 0.145 0.99 0.398 --interval 0.5 -o "output/EeuIM1DBwas-draft.gp5"
+./.venv/bin/python tab_converter.py "https://www.youtube.com/watch?v=EeuIM1DBwas" --roi 0.055 0.145 0.99 0.398 --interval 0.5 -o "output/EeuIM1DBwas-draft.gp5"
 ```
 
 每次转换同时生成 GP5 和 JSON。OCR 草稿默认使用 120 BPM、4/4 拍和等长八分音符。用 `--bpm` 和 `--duration` 调整草稿时值。原谱节奏、小节线、滑音和击勾弦需要额外校对。
