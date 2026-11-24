@@ -138,7 +138,15 @@ def export_gp5(groups,path,bpm,duration,title):
             beat=gp.Beat(voice); beat.duration.value=duration; beat.start=measure.start+j*(3840//duration)
             beat.status=gp.BeatStatus.normal if notes else gp.BeatStatus.rest
             for n in notes:
-                beat.notes.append(gp.Note(beat,string=int(n['string']),value=int(n['fret']),type=gp.NoteType.normal))
+                note = gp.Note(
+                    beat,
+                    string=int(n['string']),
+                    value=int(n['fret']),
+                    type=gp.NoteType.dead if n.get('muted') else gp.NoteType.normal,
+                )
+                if n.get('harmonic'):
+                    note.effect.harmonic = gp.NaturalHarmonic()
+                beat.notes.append(note)
             voice.beats.append(beat)
     gp.write(song,str(path),version=(5,1,0))
     gp.parse(str(path)) # verify serialization can be read back
@@ -154,7 +162,10 @@ def main():
     p.add_argument('--interval',type=float,default=1,help='Seconds between sampled frames')
     p.add_argument('--start',type=float,default=0); p.add_argument('--end',type=float)
     p.add_argument('--confidence',type=float,default=25); p.add_argument('--tesseract'); p.add_argument('--title',default='Video TAB')
-    a=p.parse_args(); out=Path(a.output).with_suffix('.gp5'); out.parent.mkdir(parents=True,exist_ok=True)
+    a=p.parse_args()
+    if Path(a.source).suffix.lower() in {'.gp', '.gp3', '.gp4', '.gp5', '.gpx'} and not a.source.startswith(('https://', 'http://')):
+        p.error('Open existing Guitar Pro scores in Guitar Pro. This converter accepts video and note-event JSON.')
+    out=Path(a.output).with_suffix('.gp5'); out.parent.mkdir(parents=True,exist_ok=True)
     if a.interval<=0 or a.start<0 or (a.end is not None and a.end<=a.start) or not 20<=a.bpm<=300: p.error('Invalid time range, interval or BPM')
     if a.roi and not (0<=a.roi[0]<a.roi[2]<=1 and 0<=a.roi[1]<a.roi[3]<=1): p.error('Invalid ROI')
     if a.lines and not (0<=a.lines[0] and a.lines[-1]<=1 and all(x<y for x,y in zip(a.lines,a.lines[1:]))): p.error('Invalid string positions')
